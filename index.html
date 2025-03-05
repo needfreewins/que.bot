@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Selection</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        button { padding: 10px 20px; margin: 10px; cursor: pointer; font-size: 16px; }
+        #team-list { margin-top: 20px; font-size: 18px; }
+    </style>
+</head>
+<body>
+    <h2>Select Your Team</h2>
+    <input type="text" id="username" placeholder="Enter your name">
+    <br>
+    <button onclick="joinTeam(1)">Join Team 1</button>
+    <button onclick="joinTeam(2)">Join Team 2</button>
+    <button onclick="finalizeTeams()">Finalize Teams</button>
+    <button onclick="resetTeams()">Reset</button>
+
+    <div id="team-list">
+        <h3>Team 1:</h3>
+        <ul id="team1"></ul>
+        <h3>Team 2:</h3>
+        <ul id="team2"></ul>
+    </div>
+
+    <script>
+        const webhookURL = "https://discord.com/api/webhooks/1297102728211730473/vAx09fEM8M_bqzJXh0xeyzSohsfo8VcUVLH2_w6azDZeLFCI_zzRkPmphC8LXceyda7j"; // Replace with your webhook
+
+        let teams = { team1: [], team2: [] };
+
+        function updateDisplay() {
+            document.getElementById("team1").innerHTML = teams.team1.map(name => `<li>${name}</li>`).join("");
+            document.getElementById("team2").innerHTML = teams.team2.map(name => `<li>${name}</li>`).join("");
+        }
+
+        function joinTeam(teamNumber) {
+            const username = document.getElementById("username").value.trim();
+            if (!username) {
+                alert("Please enter your name.");
+                return;
+            }
+
+            if (teams.team1.includes(username) || teams.team2.includes(username)) {
+                alert("You have already joined a team!");
+                return;
+            }
+
+            if (teamNumber === 1) teams.team1.push(username);
+            else teams.team2.push(username);
+
+            localStorage.setItem("teams", JSON.stringify(teams));
+            updateDisplay();
+        }
+
+        function finalizeTeams() {
+            const message = `**Final Teams:**\n🟦 **Team 1:** ${teams.team1.join(", ")}\n🟥 **Team 2:** ${teams.team2.join(", ")}`;
+            fetch(webhookURL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ content: message })
+            }).then(() => alert("Teams sent to Discord!"));
+        }
+
+        function resetTeams() {
+            teams = { team1: [], team2: [] };
+            localStorage.removeItem("teams");
+            updateDisplay();
+        }
+
+        // Load stored teams on page load
+        if (localStorage.getItem("teams")) {
+            teams = JSON.parse(localStorage.getItem("teams"));
+            updateDisplay();
+        }
+    </script>
+</body>
+</html>
